@@ -51,24 +51,32 @@ GROUP BY t_update.[Outlet Key],
 SELECT    t_update.[Calendar Day of Year Number], 
           t_update.[Outlet Key], 
           t_update.[Teradata Material Key], 
-          IIf(t_update.[Teradata Material Key]=t_2.[Legacy Key Account Key],"CCL CWD Customers",
-                    IIF(T_1.[Distributer Identifier]
+          IIF (
+          t_update.[Legacy Key Account Key]=t_2.[Legacy Key Account Key],"CCL CWD Customers",
+                    IIF((t_1.[Distributer Identifier]="Yes" 
+                    AND t_update.[Legacy Key Account Key]<>t_2.[Legacy Key Account Key]),"Distributors who report volume",
+                           IIF((t_1.[Cust Group - per CCL] = "CCL-Agent" 
+                                    AND t_1.[Distributer Identifier]<>"Yes" 
+                                    AND t_update.[Legacy Key Account Key]<>t_1.[Legacy Key Account Key]),
+                                                  "CCL-Agent", "CCC"))
           ) AS Category 
 
 INTO Temp_Category2 IN 'C:\Users\B80883\Downloads\Databases\005_Data_Dump.accdb'
-FROM Temp_YTD_Transactions_1stUpdate AS t_update, a_Customer_Lookup as t_1, #_Special_Customers as t_2
-WHERE (
-
-((t_update.[Teradata Material Key])=[t_1].[Material #])
-
-
-)
-
-
+FROM Temp_YTD_Transactions_1stUpdate AS t_update, [#_Special_Customers] as t_2
+LEFT JOIN a_Customer_Lookup as t_1
+ON (t_update.[Legacy Key Account Key]=t_1.[Legacy Key Account Key])
+WHERE (t_update.[Category] not in ("MMBU","Freestyle","Allied"))
 GROUP BY  t_update.[Calendar Day of Year Number], 
           t_update.[Outlet Key], 
           t_update.[Teradata Material Key], 
-          IIf();
-
+          IIF (
+          t_update.[Legacy Key Account Key]=t_2.[Legacy Key Account Key],"CCL CWD Customers",
+                    IIF((t_1.[Distributer Identifier]="Yes" 
+                    AND t_update.[Legacy Key Account Key]<>t_2.[Legacy Key Account Key]),"Distributors who report volume",
+                           IIF((t_1.[Cust Group - per CCL] = "CCL-Agent" 
+                                    AND t_1.[Distributer Identifier]<>"Yes" 
+                                    AND t_update.[Legacy Key Account Key]<>t_1.[Legacy Key Account Key]),
+                                                  "CCL-Agent", "CCC"))
+          );
 
 ```
