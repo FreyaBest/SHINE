@@ -35,11 +35,15 @@ FROM ((0_YTD_Transactions AS t_all
 /* Category 1 - MMBU, Freestyle and Allied*/
 
 SELECT t_update.[Outlet Key], 
-       t_update.[Teradata Material Key], 
-       t_1.Grouping, 
+       t_update.[Teradata Material Key],
        IIf([t_1].[Grouping]="MMBU","MMBU",IIf([t_1].[Grouping]="Freestyle","Freestyle",IIf([t_1].[Grouping]="Allied","Allied","Others"))) AS  [Category]
+INTO Temp_Category1 IN 'C:\Users\B80883\Downloads\Databases\005_Data_Dump.accdb'
 FROM Temp_YTD_Transactions_1stUpdate AS t_update, a_Matterial_Lookup AS t_1
-WHERE (((t_update.[Teradata Material Key])=[t_1].[Material #]));
+WHERE (((t_update.[Teradata Material Key])=[t_1].[Material #]))
+GROUP BY t_update.[Outlet Key], 
+         t_update.[Teradata Material Key],
+         IIf([t_1].[Grouping]="MMBU","MMBU",IIf([t_1].[Grouping]="Freestyle","Freestyle",IIf([t_1].[Grouping]="Allied","Allied","Others")));
+         
 
 
 
