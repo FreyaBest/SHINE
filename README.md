@@ -38,14 +38,37 @@ SELECT t_update.[Outlet Key],
        t_update.[Teradata Material Key],
        IIf([t_1].[Grouping]="MMBU","MMBU",IIf([t_1].[Grouping]="Freestyle","Freestyle",IIf([t_1].[Grouping]="Allied","Allied","Others"))) AS  [Category]
 INTO Temp_Category1 IN 'C:\Users\B80883\Downloads\Databases\005_Data_Dump.accdb'
-FROM Temp_YTD_Transactions_1stUpdate AS t_update, a_Matterial_Lookup AS t_1
-WHERE (((t_update.[Teradata Material Key])=[t_1].[Material #]))
+FROM Temp_YTD_Transactions_1stUpdate AS t_update
+LEFT JOIN a_Matterial_Lookup AS t_1 
+ON t_update.[Teradata Material Key]=[t_1].[Material #]
 GROUP BY t_update.[Outlet Key], 
          t_update.[Teradata Material Key],
          IIf([t_1].[Grouping]="MMBU","MMBU",IIf([t_1].[Grouping]="Freestyle","Freestyle",IIf([t_1].[Grouping]="Allied","Allied","Others")));
          
 
+/* Category 2 - Special Customers, Double Counting Identifier, CCL Agent*/
 
+SELECT    t_update.[Calendar Day of Year Number], 
+          t_update.[Outlet Key], 
+          t_update.[Teradata Material Key], 
+          IIf(t_update.[Teradata Material Key]=t_2.[Legacy Key Account Key],"CCL CWD Customers",
+                    IIF(T_1.[Distributer Identifier]
+          ) AS Category 
+
+INTO Temp_Category2 IN 'C:\Users\B80883\Downloads\Databases\005_Data_Dump.accdb'
+FROM Temp_YTD_Transactions_1stUpdate AS t_update, a_Customer_Lookup as t_1, #_Special_Customers as t_2
+WHERE (
+
+((t_update.[Teradata Material Key])=[t_1].[Material #])
+
+
+)
+
+
+GROUP BY  t_update.[Calendar Day of Year Number], 
+          t_update.[Outlet Key], 
+          t_update.[Teradata Material Key], 
+          IIf();
 
 
 ```
