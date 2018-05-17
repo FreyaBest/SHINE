@@ -32,7 +32,7 @@ FROM ((0_YTD_Transactions AS t_all
      LEFT JOIN [#_Cost_and_Buyback] AS t_3 
             ON t_all.[Teradata Material Key] = t_3.[Material];
 
-/* Temp Category 1 - MMBU, Freestyle and Allied*/
+/* 002 Temp Category 1 - MMBU, Freestyle and Allied*/
 
 SELECT    t_update.[Calendar Day of Year Number], 
           t_update.[Outlet Key], 
@@ -56,7 +56,7 @@ GROUP BY  t_update.[Calendar Day of Year Number],
 
          
 
-/* Temp Category all - hierarchy: MMBU, Freestyle and Allied, Special Customers, Double Counting Identifier, CCL Agent, CCRC, CCL*/
+/* 003 Temp Category all - hierarchy: MMBU, Freestyle and Allied, Special Customers, Double Counting Identifier, CCL Agent, CCRC, CCL*/
 
 SELECT    t_temp.[Calendar Day of Year Number], 
           t_temp.[Outlet Key], 
@@ -83,7 +83,7 @@ GROUP BY  t_temp.[Calendar Day of Year Number],
                                                             IIF(t_cust.[Cust_Type]="CCL","CCL","CCC"))))));
 
 
-/*Temp_Product_Grouping_Adding (General Groupings)*/
+/* 004 Temp_Product_Grouping_Adding (General Groupings)*/
 
 SELECT    t_update.[Outlet Key], 
           t_update.[Teradata Material Key], 
@@ -93,7 +93,7 @@ SELECT    t_update.[Outlet Key],
 FROM a_Matterial_Lookup AS t_mat, Temp_YTD_Transactions_1stUpdate AS t_update
 WHERE ((t_update.[Teradata Material Key] = t_mat.[Material #] and (t_mat.[Customer Specific]) is null));
 
-/*Temp_Product_Grouping_Updating (Specific Groupings))*/
+/* 005 Temp_Product_Grouping_Updating (Specific Groupings))*/
 
 SELECT    t_group.[Outlet Key], 
           t_group.[Teradata Material Key], 
@@ -109,6 +109,21 @@ GROUP BY  t_group.[Outlet Key],
           t_group.[Calendar Day of Year Number], 
           IIF((t_group.[Customer Per Rate Schedule] = t_mat.[Customer Specific]) 
                     AND (t_group.[Teradata Material Key] = t_mat.[Material #]), t_mat.[Grouping], t_group.[Grouping]);
+
+/* 006 Fetch customer price from Shashi's list*/
+SELECT    t_update.[Calendar Day of Year Number], 
+          t_update.[Outlet Key], 
+          t_update.[Teradata Material Key], 
+          t_rate.[Price to Customer] 
+INTO Temp_NSI IN 'C:\Users\B80883\Downloads\Databases\006_Data_Dump.accdb'
+FROM Temp_YTD_Transactions_2ndUpdate as t_update 
+     LEFT JOIN [#_Rate_Schedule]  as t_rate
+        ON  (t_update.[Calendar Day of Year Number]<(format(t_rate.[End Date Price to Customer],"00000")-43100)) 
+        AND (t_update.[Calendar Day of Year Number]>(format(t_rate.[Start Date Price to Customer],"00000")-43100)) 
+        AND (t_update.[Product Grouping] = t_rate.[Product Grouping]) 
+        AND (t_update.[Customer Per Rate Schedule] = t_rate.Customer)
+        AND (t_update.[Region] = t_rate.[Region])
+GROUP BY t_update.[Calendar Day of Year Number], t_update.[Outlet Key], t_update.[Teradata Material Key], t_rate.[Price to Customer];
 
 
 ```
